@@ -464,7 +464,8 @@ elif [ "$1" == "bridge" ]; then
 
 else
 
-	echo "[!] Error, no parameters, quitting..."
+	echo "[!] Error, no parameters, try to do:"
+	echo "    $0 interactive"
 	exit 1
 
 fi
