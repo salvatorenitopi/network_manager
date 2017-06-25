@@ -216,13 +216,6 @@ function fx_interactive_connect {
 
 	echo;echo;echo;echo;echo;
 	echo "####################################"
-	echo "# CONNECT - Password               #"
-	echo "####################################"
-	printf "Password: "; read pass
-
-
-	echo;echo;echo;echo;echo;
-	echo "####################################"
 	echo "# CONNECT - Encryption             #"
 	echo "####################################"
 	echo "1) Open"
@@ -230,6 +223,17 @@ function fx_interactive_connect {
 	echo "3) WPA-WPA2"
 	echo "####################################"
 	printf "Type: "; read tipo
+
+
+	if [[ $tipo != "1" ]]; then
+
+		echo;echo;echo;echo;echo;
+		echo "####################################"
+		echo "# CONNECT - Password               #"
+		echo "####################################"
+		printf "Password: "; read pass
+
+	fi
 
 
 	echo;echo;echo;echo;echo;
