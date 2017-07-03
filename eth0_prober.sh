@@ -19,8 +19,7 @@ while [[ true ]]; do
 
 	fi
 
-	echo "LOL"
-	sleep 1
+	sleep 2
 done
 
 }
