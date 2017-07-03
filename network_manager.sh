@@ -242,19 +242,13 @@ function fx_interactive_connect {
 	echo "####################################"
 	echo "Interface:   $interface"
 	echo "Network:     $network"
-	echo "Password:    $pass"
 	echo "Tipo:        $tipo"
+	echo "Password:    $pass"
 	echo "####################################"
 	printf "Press enter to connect..."; read
 
 	echo;echo;echo;echo;echo;
 
-	if [ $tipo -eq 0 ]; then
-		echo "bash ../connect_wifi.sh fast $interface $network null $tipo" > _fast/connect_$network.sh
-	else
-		echo "bash ../connect_wifi.sh fast $interface $network $pass $tipo" > _fast/connect_$network.sh
-	fi
-	chmod +x _fast/connect_$network.sh
 
 }
 
@@ -379,9 +373,113 @@ bssid=00:AA:11:BB:22:CC
 hidessid=0
 
 
-if [ "$1" ==  "interactive" ]; then
+############################################################################################
 
-	echo "####################################"
+#!/bin/bash
+
+# m     mode
+
+# CONNECT
+# i     interface
+# n     network
+# e     encryption_type
+# p     passphrase
+
+
+# HOSTPOT
+# i     interface
+# s     ssid
+# c     channel
+# p     passphrase
+
+
+# SHARE
+# i     internet_interface
+# f     forward_interface
+
+
+
+fx_help() { 
+    echo "Usage: $0 [Options]"
+    echo
+    echo "OPTIONS:"
+    echo "  -i       interface"
+    echo "  -c       channel"
+    echo "  -s       ssid"
+    echo "  -m       module"
+    echo "  -p       password (not required)"
+    echo
+    echo "MODES:"
+    echo "  start    start the captive_portal"
+    echo "  stop     stop the captive_portal"
+    echo "  check    check users.txt file"
+    echo
+    exit 1
+}
+
+HELP=false
+
+while true; do
+	case "$1" in
+	-h | --help )    HELP=true; shift ;;
+	-- ) shift; break ;;
+    * ) break ;;
+	esac
+done
+
+echo HELP=$HELP
+
+while getopts ":m:i:n:e:p:s:c:f:" x; do
+    case "${x}" in
+        m)
+            m=${OPTARG}
+            ;;
+
+        i)
+            i=${OPTARG}
+            ;;
+
+        n)
+            n=${OPTARG}
+            ;;
+
+        e)
+            e=${OPTARG}
+            ;;
+
+        p)
+            p=${OPTARG}
+            ;;
+
+        s)
+            s=${OPTARG}
+            ;;
+
+        c)
+            c=${OPTARG}
+            ;;
+
+        f)
+            f=${OPTARG}
+            ;;
+
+        *)
+            #usage
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+####################################################################
+
+
+if [[ "$HELP" = true ]]; then
+
+	fx_help
+
+elif [[ -z $m ]]; then
+
+    echo "####################################"
 	echo "# Menu                             #"
 	echo "####################################"
 	echo "1) Connect - Connect WiFi"
@@ -431,7 +529,7 @@ if [ "$1" ==  "interactive" ]; then
 
 	elif [ $i -eq 8 ]; then
 
-		echo "Help"
+		fx_help
 
 	elif [ $i -eq 9 ]; then
 
@@ -446,32 +544,123 @@ if [ "$1" ==  "interactive" ]; then
 		exit 1
 
 	fi
-
-
-
-elif [ "$1" == "connect" ]; then
-
-	echo "Connect"
-
-elif [ "$1" == "hotspot" ]; then
-
-	echo "Hotspot"
-
-
-elif [ "$1" == "share" ]; then
-
-	echo "Share"
-
-elif [ "$1" == "bridge" ]; then
-
-	echo "Bridge"
-
+    
 else
 
-	echo "[!] Error, no parameters, try to do:"
-	echo "    $0 interactive"
-	exit 1
+####################################################################
+    
+    if [[ $m == "connect" ]]; then
+
+        if [ -z $i ] || [ -z $n ] || [ -z $e ]; then
+            echo "[!] Missing parameters:"
+            echo "    interface        -i $i"
+            echo "    network          -n $n"
+            echo "    encryption_type  -e $e"
+            exit 1
+
+        else
+
+            if [ $e -eq 1 ] && [ $e -eq 2 ] && [ $e -eq 3 ]; then
+                echo "[!] Parameter:"
+                echo "    encryption_type -e supports only: <1|2|3>"
+                exit 1
+
+            elif [ $e -eq 1 ]; then
+
+                interface=$i
+				network=$
+				tipo=$1
+
+				fx_rst_connection
+				fx_connect
+
+            elif [ $e -eq 2 ] || [ $e -eq 3 ]; then
+                if [[ -z $p ]]; then
+                    echo "[!] Missing parameters:"
+                    echo "    passphrase -p $p"
+                    exit 1
+
+                else
+
+                    interface=$i
+					network=$
+					tipo=$e
+					pass=$p
+
+					fx_rst_connection
+					fx_connect
+
+                fi
+            fi
+        fi
+        
+####################################################################
+        
+    elif [[ $m == "hotspot" ]]; then
+        if [ -z $i ] || [ -z $s ] || [ -z $c ]; then
+            echo "[!] Missing parameters:"
+            echo "    interface -i $i"
+            echo "    ssid      -s $s"
+            echo "    channel   -e $c"
+            exit 1
+
+        else
+            if [[ -z $p ]]; then
+                echo "HOTSPOT OPEN"
+                
+                interface=$i
+                ssid=$s
+                channel=$c
+                wpa_passphrase="nullnull"
+                wpa=0
+
+                #fx_rst_hotspot
+				fx_kill
+				fx_hotspot
+
+            else
+                echo "HOTSPOT WPA2"
+
+                interface=$i
+                ssid=$s
+                channel=$c
+                wpa_passphrase=$p
+                wpa=3
+
+                #fx_rst_hotspot
+				fx_kill
+				fx_hotspot
+
+            fi
+        fi
+
+####################################################################
+
+    elif [[ $m == "share" ]]; then
+        if [ -z $i ] && [ -z $f ]; then
+            echo "[!] Missing parameters:"
+            echo "    internet_interface -i $i"
+            echo "    forward_interface  -f $f"
+        else
+            echo "share"
+            
+            interface=$f
+            internet=$i
+
+            fx_rst_firewall
+			fx_share
+
+        fi
+        
+
+####################################################################
+
+    else
+        echo "[!] Parameter:"
+        echo "    mode -m supports only: <connect|hotspot|share>"
+        exit 1
+    fi
 
 fi
 
-
+############################################################################################
