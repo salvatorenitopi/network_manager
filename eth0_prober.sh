@@ -6,7 +6,7 @@ prober () {
 while [[ true ]]; do
 
 	plugged=$(cat /sys/class/net/eth0/carrier)
-	if [[ plugged == 1 ]]; then
+	if [[ plugged -eq 1 ]]; then
 		
 		echo "[*] Plugged"
 
@@ -15,13 +15,21 @@ while [[ true ]]; do
 			
 			echo "[*] Connected"
 
+		else
+
+			echo "[!] Need to connect"
+
 		fi
+
+	else
+
+		echo "[!] Need to be plugged"
 
 	fi
 
-	sleep 2
-done
+	sleep 5
 
+done
 }
 
 prober
