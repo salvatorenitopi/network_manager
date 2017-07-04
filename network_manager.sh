@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#Depedencies: apt-get install airmon-ng hostapd isc-dhcp-server -y
+#Depedencies: apt-get install hostapd isc-dhcp-server -y
 #/sys/class/net/
 #ifconfig | grep wlan1 -A1 | grep inet
 
