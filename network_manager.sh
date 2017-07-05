@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#Depedencies: apt-get install hostapd isc-dhcp-server -y
+#Depedencies: apt-get install hostapd isc-dhcp-server psmisc net-tools -y
 #/sys/class/net/
 #ifconfig | grep wlan1 -A1 | grep inet
 
@@ -65,6 +65,7 @@ function fx_rst_firewall {
 function fx_connect {
 	sudo ifconfig $interface down
 	sudo ifconfig $interface up
+
 	#OPEN
 	if [ $tipo -eq 1 ]; then
 		sudo iwconfig $interface essid $network key open
@@ -95,11 +96,11 @@ function fx_connect {
 
 function fx_hotspot {
 
-	ifconfig $interface down
-	ifconfig $interface up
-
 	killall dhcpd
 	killall hostapd
+
+	ifconfig $interface down
+	ifconfig $interface up
 
 	echo "[*] Configuring hostapd..."
 
@@ -141,8 +142,8 @@ rsn_pairwise=CCMP") >> /etc/hostapd/hostapd.conf
 	#####################################
 
 	# Primo AVVIO
-	# mkdir /var/lib/dhcp
-	# touch /var/lib/dhcp/dhcpd.leases
+	mkdir /var/lib/dhcp
+	touch /var/lib/dhcp/dhcpd.leases
 
 	ifconfig $interface  up
 	ifconfig $interface  192.168.17.1 netmask 255.255.255.0
@@ -400,19 +401,30 @@ hidessid=0
 
 
 fx_help() { 
-    echo "Usage: $0 [Options]"
+	echo
+    echo "Usage: $0 -m [mode] [options]"
     echo
-    echo "OPTIONS:"
-    echo "  -i       interface"
-    echo "  -c       channel"
-    echo "  -s       ssid"
-    echo "  -m       module"
-    echo "  -p       password (not required)"
+    echo "MODE: -m connect [options]"
+    echo 
+    echo "      interface           -i       wlan interface used to connect"
+    echo "      network             -n       network name to connect to"
+    echo "      encryption_type     -e       encryption type: 1=OPEN 2=WEP 3=WPA/WPA2"
+    echo "      passphrase          -p       passphrase needed to connect (not required only if -e 1)"
     echo
-    echo "MODES:"
-    echo "  start    start the captive_portal"
-    echo "  stop     stop the captive_portal"
-    echo "  check    check users.txt file"
+    echo
+    echo "MODE: -m hotspot [options]"
+    echo
+    echo "      interface           -i       wlan interface used as hotspot"
+    echo "      ssid                -s       ssid of the hotpot"
+    echo "      channel             -c       channel of the hotspot"
+    echo "      passphrase          -p       passphrase needed to connect (not compulsory)"
+    echo
+    echo
+    echo "MODE: -m share [options]"
+    echo
+    echo "      internet_interface  -i       interface that is connected to internet/network"
+    echo "      forward_interface   -f       interface you wish to use as traffic forwarder"
+    echo
     echo
     exit 1
 }
@@ -552,17 +564,23 @@ else
     if [[ $m == "connect" ]]; then
 
         if [ -z $i ] || [ -z $n ] || [ -z $e ]; then
+        	echo
             echo "[!] Missing parameters:"
             echo "    interface        -i $i"
             echo "    network          -n $n"
             echo "    encryption_type  -e $e"
+            echo
+            echo
             exit 1
 
         else
 
             if [ $e -eq 1 ] && [ $e -eq 2 ] && [ $e -eq 3 ]; then
+            	echo
                 echo "[!] Parameter:"
                 echo "    encryption_type -e supports only: <1|2|3>"
+                echo
+                echo
                 exit 1
 
             elif [ $e -eq 1 ]; then
@@ -576,8 +594,11 @@ else
 
             elif [ $e -eq 2 ] || [ $e -eq 3 ]; then
                 if [[ -z $p ]]; then
+                	echo
                     echo "[!] Missing parameters:"
                     echo "    passphrase -p $p"
+                    echo
+                    echo
                     exit 1
 
                 else
@@ -598,10 +619,13 @@ else
         
     elif [[ $m == "hotspot" ]]; then
         if [ -z $i ] || [ -z $s ] || [ -z $c ]; then
+        	echo
             echo "[!] Missing parameters:"
             echo "    interface -i $i"
             echo "    ssid      -s $s"
-            echo "    channel   -e $c"
+            echo "    channel   -c $c"
+            echo
+            echo
             exit 1
 
         else
@@ -638,9 +662,12 @@ else
 
     elif [[ $m == "share" ]]; then
         if [ -z $i ] && [ -z $f ]; then
+        	echo
             echo "[!] Missing parameters:"
             echo "    internet_interface -i $i"
             echo "    forward_interface  -f $f"
+            echo
+            echo
         else
             echo "share"
             
