@@ -6,6 +6,35 @@
 
 
 ###########################################################
+function fx_check_dependencies {
+
+	missing=""
+	dep=('hostapd' 'isc-dhcp-server' 'psmisc net-tools')
+
+	t=$(/usr/bin/dpkg -s aircrack-ng &> /dev/null; echo $?)
+
+
+	for (( i=0; i<${#dep[@]}; i++ )); do
+		t=$(/usr/bin/dpkg -s ${dep[i]} &> /dev/null; echo $?)
+		if [ "$t" -ne 0 ]; then
+			echo -e "[!] ${dep[i]} Not installed"
+			missing="$missing ${dep[i]}"
+		else
+			echo -e "[*] ${dep[i]} Installed"
+
+		fi
+
+	done
+
+
+	if [ ! -z "$missing" ]; then
+		echo "[!] Missing dependencies, please do:"; echo
+		echo "    apt-get update; apt-get install $missing"
+		exit 1
+	fi
+	
+
+}
 
 function fx_rst_connection {
 	echo "[*] Killing processes..."
@@ -490,6 +519,8 @@ if [[ "$HELP" = true ]]; then
 	fx_help
 
 elif [[ -z $m ]]; then
+	
+	fx_check_dependencies
 
     echo "####################################"
 	echo "# Menu                             #"
@@ -585,6 +616,8 @@ else
 
             elif [ $e -eq 1 ]; then
 
+            	fx_check_dependencies
+
                 interface=$i
 				network=$
 				tipo=$1
@@ -602,6 +635,8 @@ else
                     exit 1
 
                 else
+
+                	fx_check_dependencies
 
                     interface=$i
 					network=$
@@ -630,6 +665,9 @@ else
 
         else
             if [[ -z $p ]]; then
+
+            	fx_check_dependencies
+
                 echo "HOTSPOT OPEN"
                 
                 interface=$i
@@ -643,6 +681,9 @@ else
 				fx_hotspot
 
             else
+
+            	fx_check_dependencies
+
                 echo "HOTSPOT WPA2"
 
                 interface=$i
@@ -669,6 +710,9 @@ else
             echo
             echo
         else
+
+        	fx_check_dependencies
+
             echo "share"
             
             interface=$f
