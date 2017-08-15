@@ -14,13 +14,13 @@ function fx_check_dependencies {
 	t=$(/usr/bin/dpkg -s aircrack-ng &> /dev/null; echo $?)
 
 
-	for (( i=0; i<${#dep[@]}; i++ )); do
-		t=$(/usr/bin/dpkg -s ${dep[i]} &> /dev/null; echo $?)
+	for (( j=0; j<${#dep[@]}; j++ )); do
+		t=$(/usr/bin/dpkg -s ${dep[j]} &> /dev/null; echo $?)
 		if [ "$t" -ne 0 ]; then
-			echo -e "[!] ${dep[i]} Not installed"
-			missing="$missing ${dep[i]}"
+			echo -e "[!] ${dep[j]} Not installed"
+			missing="$missing ${dep[j]}"
 		else
-			echo -e "[*] ${dep[i]} Installed"
+			echo -e "[*] ${dep[j]} Installed"
 
 		fi
 
