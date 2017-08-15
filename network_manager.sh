@@ -519,7 +519,7 @@ if [[ "$HELP" = true ]]; then
 	fx_help
 
 elif [[ -z $m ]]; then
-	
+
 	fx_check_dependencies
 
     echo "####################################"
@@ -619,8 +619,8 @@ else
             	fx_check_dependencies
 
                 interface=$i
-				network=$
-				tipo=$1
+				network=$n
+				tipo=$e
 
 				fx_rst_connection
 				fx_connect
@@ -639,7 +639,7 @@ else
                 	fx_check_dependencies
 
                     interface=$i
-					network=$
+					network=$n
 					tipo=$e
 					pass=$p
 
