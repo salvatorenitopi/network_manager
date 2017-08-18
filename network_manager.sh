@@ -9,7 +9,7 @@
 function fx_check_dependencies {
 
 	missing=""
-	dep=('hostapd' 'isc-dhcp-server' 'psmisc net-tools')
+	dep=('hostapd' 'isc-dhcp-server' 'psmisc' 'net-tools')
 
 	t=$(/usr/bin/dpkg -s aircrack-ng &> /dev/null; echo $?)
 
