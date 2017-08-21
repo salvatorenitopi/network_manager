@@ -4,6 +4,7 @@
 #/sys/class/net/
 #ifconfig | grep wlan1 -A1 | grep inet
 
+IFS=$'\n'		# Don't consider spaces ad newline
 
 ###########################################################
 function fx_check_dependencies {
@@ -735,3 +736,5 @@ else
 fi
 
 ############################################################################################
+
+unset IFS 		# unset Don't consider spaces ad newline
