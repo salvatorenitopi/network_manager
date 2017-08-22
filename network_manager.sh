@@ -3,6 +3,8 @@
 #Depedencies: apt-get install hostapd isc-dhcp-server psmisc net-tools -y
 #/sys/class/net/
 #ifconfig | grep wlan1 -A1 | grep inet
+#ip_address=$(ifconfig eth0 | grep 'inet' | cut -d: -f2 | awk '{ print $2}')
+
 
 IFS=$'\n'		# Don't consider spaces ad newline
 
@@ -118,6 +120,21 @@ function fx_connect {
 	else
 		echo "[!] Unknown Error"
 		exit
+	fi
+
+	echo
+	echo "####################################"
+
+	ip_address=$(ifconfig $interface | grep 'inet' | cut -d: -f2 | awk '{ print $2}')
+
+	if [[ -z "$ip_address" ]]; then
+		echo "[!] Connection failed:"
+		echo "    Interface:  $interface"
+		echo "    IP address: $ip_address"
+	else
+		echo "[*] Connection successfull:"
+		echo "    Interface:  $interface"
+		echo "    IP address: $ip_address"
 	fi
 
 }
