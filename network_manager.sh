@@ -154,6 +154,7 @@ function fx_hotspot {
 	ifconfig $interface down
 	ifconfig $interface up
 
+	echo;echo;echo
 	echo "[*] Configuring hostapd..."
 
 	#####################################
@@ -173,18 +174,32 @@ wpa_passphrase=$wpa_passphrase
 wpa_pairwise=TKIP
 rsn_pairwise=CCMP") >> /etc/hostapd/hostapd.conf
 
-	hostapd /etc/hostapd/hostapd.conf -B #>/dev/null &
+	counter=0
+	while [[ -z "$running" && $counter -lt "5" ]]; do
 
-	echo;echo;echo
+		echo "[*] Launching hostapd (attempt $counter)"
 
-	status=$?
-	if [ "$status" !=  "0" ]; then
-		echo "[!] Error with Hostapd, tring again..."
+		sleep 3
+		ifconfig $interface down
+		ifconfig $interface up
+		
 		killall hostapd
-		hostapd /etc/hostapd/hostapd.conf -B
-	else
-		echo "[*] Hostapd started correctly"
-	fi
+		hostapd /etc/hostapd/hostapd.conf -B #>/dev/null &
+
+		running=$(ps cax | grep hostapd)
+		counter=$((counter+1))
+
+	done
+
+
+#	status=$?
+#	if [ "$status" !=  "0" ]; then
+#		echo "[!] Error with Hostapd, tring again..."
+#		killall hostapd	
+#		hostapd /etc/hostapd/hostapd.conf -B
+#	else
+#		echo "[*] Hostapd started correctly"
+#	fi
 
 	
 
