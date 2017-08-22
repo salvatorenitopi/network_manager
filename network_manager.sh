@@ -125,16 +125,19 @@ function fx_connect {
 	echo
 	echo "####################################"
 
-	ip_address=$(ifconfig $interface | grep 'inet' | cut -d: -f2 | awk '{ print $2}')
+	local_address=$(ifconfig $interface | grep 'inet' | cut -d: -f2 | awk '{ print $2}')
+	public_address=$(curl ipinfo.io/ip)
 
-	if [[ -z "$ip_address" ]]; then
+	if [[ -z "$local_address" ]]; then
 		echo "[!] Connection failed:"
-		echo "    Interface:  $interface"
-		echo "    IP address: $ip_address"
+		echo "    Interface:   $interface"
+		echo "    Local addr:  $local_address"
+		echo "    Public addr: $public_address"
 	else
 		echo "[*] Connection successfull:"
-		echo "    Interface:  $interface"
-		echo "    IP address: $ip_address"
+		echo "    Interface:   $interface"
+		echo "    Local addr:  $local_address"
+		echo "    Public addr: $public_address"
 	fi
 
 }
