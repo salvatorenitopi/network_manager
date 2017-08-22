@@ -122,11 +122,13 @@ function fx_connect {
 		exit
 	fi
 
-	echo
-	echo "####################################"
+	
 
 	local_address=$(ifconfig $interface | grep 'inet' | cut -d: -f2 | awk '{ print $2}')
 	public_address=$(curl ipinfo.io/ip)
+
+	echo
+	echo "####################################"
 
 	if [[ -z "$local_address" ]]; then
 		echo "[!] Connection failed:"
