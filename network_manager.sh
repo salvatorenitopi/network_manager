@@ -482,16 +482,19 @@ fx_help() {
 }
 
 HELP=false
+FAIL=false
 
 while true; do
 	case "$1" in
 	-h | --help )    HELP=true; shift ;;
+	-z | --fail-safe )    FAIL=true; shift ;;
 	-- ) shift; break ;;
     * ) break ;;
 	esac
 done
 
 echo HELP=$HELP
+echo FAIL=$FAIL
 
 while getopts ":m:i:n:e:p:s:c:f:" x; do
     case "${x}" in
