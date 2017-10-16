@@ -14,7 +14,7 @@ function fx_check_dependencies {
 	missing=""
 	dep=('hostapd' 'isc-dhcp-server' 'psmisc' 'net-tools')
 
-	t=$(/usr/bin/dpkg -s aircrack-ng &> /dev/null; echo $?)
+	#t=$(/usr/bin/dpkg -s aircrack-ng &> /dev/null; echo $?)
 
 
 	for (( j=0; j<${#dep[@]}; j++ )); do
@@ -90,6 +90,13 @@ function fx_rst_firewall {
 	echo "0"  > /proc/sys/net/ipv4/ip_forward
 }
 
+
+function fx_all_wlan_up {
+	winterface=($(iwconfig | grep "IEEE" | cut -d " " -f1))
+	for (( j=0; j<${#winterface[@]}; j++ )); do
+	ifconfig ${winterface[j]} up
+	done
+}
 
 
 ###########################################################
@@ -255,6 +262,9 @@ function fx_share {
 ###########################################################
 
 function fx_interactive_connect {
+
+	fx_all_wlan_up		# PUTS ALL WLAN UP
+
 	echo;echo;echo;echo;echo;
 	echo "####################################"
 	echo "# CONNECT - Interface              #"
@@ -324,6 +334,8 @@ function fx_interactive_connect {
 
 function fx_interactive_hotspot {
 
+	fx_all_wlan_up		# PUTS ALL WLAN UP
+
 	echo;echo;echo;echo;echo;
 	echo "####################################"
 	echo "# HOTSPOT - Interface              #"
@@ -388,6 +400,7 @@ function fx_interactive_hotspot {
 ###########################################################
 
 function fx_interactive_share {
+	fx_all_wlan_up		# PUTS ALL WLAN UP
 	ifaces=($(ifconfig | grep "mtu" | cut -d " " -f 1 | tr -d ':'))
 
 	echo;echo;echo;echo;echo;
@@ -508,8 +521,8 @@ while true; do
 	esac
 done
 
-echo HELP=$HELP
-echo FAIL=$FAIL
+#echo HELP=$HELP
+#echo FAIL=$FAIL
 
 while getopts ":m:i:n:e:p:s:c:f:" x; do
     case "${x}" in
@@ -563,6 +576,7 @@ elif [[ -z $m ]]; then
 
 	fx_check_dependencies
 
+	echo; echo; echo
     echo "####################################"
 	echo "# Menu                             #"
 	echo "####################################"
