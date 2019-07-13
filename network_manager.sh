@@ -6,6 +6,12 @@
 #ip_address=$(ifconfig eth0 | grep 'inet' | cut -d: -f2 | awk '{ print $2}')
 
 
+if [ "$(id -u)" != "0" ]; then
+	echo "[!] This script must be run as root."
+	exit 1
+fi
+
+
 IFS=$'\n'		# Don't consider spaces ad newline
 
 ###########################################################
@@ -378,7 +384,7 @@ function fx_interactive_hotspot {
 		echo "    password lenght, quitting..."
 		exit 2
 	else
-		wpa=3
+		wpa=2
 	fi
 
 	echo;echo;echo;echo;echo;
@@ -745,7 +751,7 @@ else
                 ssid=$s
                 channel=$c
                 wpa_passphrase=$p
-                wpa=3
+                wpa=2
 
                 #fx_rst_hotspot
 				fx_kill
