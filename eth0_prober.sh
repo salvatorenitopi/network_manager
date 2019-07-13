@@ -6,12 +6,10 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 
-# dupe_script=$(ps -ef | grep "eth0_prober.sh" | grep -v grep | wc -l)
-
-# if [ ${dupe_script} -gt 3 ]; then
-# 	echo -e "The eth0_prober.sh script was already running."
-# 	exit 0
-# fi
+if [[ $(pidof -x eth0_prober.sh -o %PPID) ]]; then
+	echo "[!] Script eth0_prober.sh is already running, quitting."
+	exit 1
+fi
 
 
 # ---- ARGS ---------------------------------------------------------------------
