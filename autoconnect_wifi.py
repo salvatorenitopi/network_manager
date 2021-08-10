@@ -8,13 +8,16 @@ import subprocess
 INTERFACE = "wlan0"
 DEBUG = True
 
+
 BLACKLISTED = ["blacklisted_ssid_here"]
+
+WPA2_KNOWN_NETWORKS = { "known_essid": "secretsecret" }
 
 
 PRECONFIGURED_WPA_SUPPLICANT = '''
 network={
-	ssid="my_network"
-	psk="my_password"
+	ssid="backup_network"
+	psk="secretsecret"
 	priority=100
 }
 '''
@@ -133,7 +136,7 @@ def parse(content):
 
 
 
-def connect_network (network_name):
+def connect_network (network_name, password):
 	blob = '''ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
 country=IT
@@ -141,6 +144,19 @@ country=IT
 network={
 	ssid="''' + network_name + '''"
 	key_mgmt=NONE
+}
+
+''' + PRECONFIGURED_WPA_SUPPLICANT
+
+	
+	if (password != None):
+		blob = '''ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+country=IT
+
+network={
+	ssid="''' + network_name + '''"
+	psk="''' + password + '''"
 }
 
 ''' + PRECONFIGURED_WPA_SUPPLICANT
@@ -154,6 +170,18 @@ network={
 	# proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	# points = proc.stdout.read().decode('utf-8')
 	
+	# cmd = ["dhclient", "-r", "wlan0"]
+	# proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	# points = proc.stdout.read().decode('utf-8')
+
+	cmd = ["ifconfig", "wlan0", "down"]
+	proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	points = proc.stdout.read().decode('utf-8')
+
+	cmd = ["ifconfig", "wlan0", "up"]
+	proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	points = proc.stdout.read().decode('utf-8')
+
 	cmd = ["systemctl", "daemon-reload"]
 	proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	points = proc.stdout.read().decode('utf-8')
@@ -166,17 +194,19 @@ network={
 	# proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	# points = proc.stdout.read().decode('utf-8')
 
+	if (DEBUG): print ("[i] Wrote " + str(ap['essid']) + " in wpa_supplicant.conf and reloaded")
 
 
 
 
-test_counter = 1
+
+test_counter = 6
 while True:
 	
 	connected = False
 
 	if (test_counter == 6):
-		if ((get_ip_address(INTERFACE) == None) or (test_internet_connection == False)):		
+		if ((get_ip_address(INTERFACE) == None) or (test_internet_connection() == False)):		
 			connected = False
 			if (DEBUG): print("[!] FULL CHECK: failed")
 		else:																				
@@ -202,24 +232,32 @@ while True:
 		candidate_cells = []
 
 		for cell in parse(content):
-			if (
-				(cell.get('encryption') == 'off') and 
-				(not cell.get('essid') in BLACKLISTED)
-			):
-				candidate_cells.append(cell)
+			if (not cell.get('essid') in BLACKLISTED):
+				if (cell.get('encryption') == 'off'):				candidate_cells.append(cell)
+				elif (WPA2_KNOWN_NETWORKS.get(cell.get('essid'))):	candidate_cells.append(cell)
+
 
 		sorted_candidate_cells = sorted(candidate_cells, reverse=True, key=lambda k: k['signal_quality'])
 
+		if (DEBUG): print ("[i] Found: " + str(len(sorted_candidate_cells)) + " networks")
+
+
 		for ap in sorted_candidate_cells:
 
-			if (DEBUG): print ("[i] Connecting to essid: " + str(ap['essid']))
-			connect_network (str(ap['essid']))
+			wpa2_password = WPA2_KNOWN_NETWORKS.get(ap['essid'])
+			if (wpa2_password == None):
+				if (DEBUG): print ("[i] Connecting to open network: " + str(ap['essid']))
+				connect_network (str(ap['essid']), None)
+			else:
+				if (DEBUG): print ("[i] Connecting to known wpa2 network: " + str(ap['essid']))
+				connect_network (str(ap['essid']), wpa2_password)
 
 
-			for i in range(0, 120):
+			timeout = 60
+			for i in range(0, timeout):
 				interface_ip = get_ip_address(INTERFACE)
 				if (interface_ip == None):
-					print ("[i] waiting ip (timeout in " + str(120 - i) + " seconds)")
+					print ("[i] waiting ip (timeout in " + str(timeout - i) + " seconds)")
 					time.sleep(1)
 				else:
 					print ("[i] Assigned ip: " + str(interface_ip))
@@ -231,19 +269,23 @@ while True:
 				continue
 
 
-			test_internet = test_internet_connection()
 			if (interface_ip == False):
-				if (DEBUG): print ("[!] Test internet connection on '" + str(ap['essid']) + "': failed")
+				if (DEBUG): print ("[!] Test interface connection on '" + str(ap['essid']) + "': failed")
 				continue
 
 			else:
-				if (DEBUG): print ("[*] Test internet connection on '" + str(ap['essid']) + "': success")
-				break
+				if (test_internet_connection() == False):
+					if (DEBUG): print ("[!] Test internet connection on '" + str(ap['essid']) + "': failed")
+					continue
+
+				else:
+					if (DEBUG): print ("[*] Test internet connection on '" + str(ap['essid']) + "': success")
+					break
 
 
-		
+
 		if (len(sorted_candidate_cells) == 0):
-			if (DEBUG): print ("[!] No open networks found")
+			if (DEBUG): print ("[!] No networks found")
 
 
 
